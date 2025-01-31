@@ -1,13 +1,14 @@
 mod app;
+mod graphics;
 
-use crate::app::App;
+use crate::{app::App, graphics::Graphics};
 use winit::event_loop::{ControlFlow, EventLoop};
 
 #[cfg(target_arch = "wasm32")]
-fn run_app(event_loop: EventLoop<()>, app: App) {
+fn run_app(event_loop: EventLoop<Graphics>, app: App) {
     // Sets up panics to go to the console.error in browser environments
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    console_log::init_with_level(log::Level::Warn).expect("Couldn't initialize logger");
+    console_log::init_with_level(log::Level::Info).expect("Couldn't initialize logger");
 
     // Runs the app async via the browsers event loop
     use winit::platform::web::EventLoopExtWebSys;
@@ -17,7 +18,7 @@ fn run_app(event_loop: EventLoop<()>, app: App) {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn run_app(event_loop: EventLoop<()>, mut app: App) {
+fn run_app(event_loop: EventLoop<Graphics>, mut app: App) {
     // Allows the setting of the log level through RUST_LOG env var.
     // It also allows wgpu logs to be seen.
     env_logger::init();
@@ -38,12 +39,9 @@ fn run_app(event_loop: EventLoop<()>, mut app: App) {
 fn main() {
     // <T> (T -> AppEvent) extends regular platform specific events (resize, mouse, etc.).
     // This allows the our app to inject custom events and handle them alongside regular ones.
-    // let event_loop = EventLoop::with_user_event().build().unwrap();
-    let event_loop = EventLoop::<()>::new().unwrap();
+    // let event_loop = EventLoop::<()>::new().unwrap();
+    let event_loop = EventLoop::<Graphics>::with_user_event().build().unwrap();
 
-    // TODO: what is App and why do we need it?
-    let app = App::default();
-    // let app = App::new(event_loop.create_proxy());
-
+    let app = App::new(&event_loop);
     run_app(event_loop, app);
 }
