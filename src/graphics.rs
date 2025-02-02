@@ -1,16 +1,10 @@
-use std::future::Future;
-
 use wgpu::{
     Adapter, Color, CommandEncoderDescriptor, Device, DeviceDescriptor, Features, Instance, Limits,
     LoadOp, MemoryHints, Operations, PowerPreference, Queue, RenderPassColorAttachment,
     RenderPassDescriptor, RequestAdapterOptions, StoreOp, Surface, SurfaceConfiguration,
     TextureViewDescriptor,
 };
-use winit::{
-    dpi::PhysicalSize,
-    event_loop::{ActiveEventLoop, EventLoopProxy},
-    window::Window,
-};
+use winit::{dpi::PhysicalSize, event_loop::EventLoopProxy, window::Window};
 
 #[cfg(target_arch = "wasm32")]
 pub type Rc<T> = std::rc::Rc<T>;
@@ -64,7 +58,7 @@ pub async fn create_graphics(window: Rc<Window>, proxy: EventLoopProxy<Graphics>
         queue,
     };
 
-    proxy.send_event(gfx);
+    let _ = proxy.send_event(gfx);
 }
 
 #[derive(Debug)]
