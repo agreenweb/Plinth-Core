@@ -1,4 +1,4 @@
-# WGPU (23.0.1) + Winit (0.30.5) Template
+# WGPU (24.0.1) + Winit (0.30.8) Template
 
 This is a template repository to get started with **[WGPU](https://wgpu.rs/)
 (24.0.1)** + **[Winit](https://github.com/rust-windowing/winit) (0.30.8)**.
