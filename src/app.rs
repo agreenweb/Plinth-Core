@@ -24,7 +24,6 @@ impl App {
     }
 
     fn draw(&mut self) {
-        log::debug!("draw() called!");
         if let State::Ready(gfx) = &mut self.state {
             gfx.draw();
         }
@@ -44,7 +43,6 @@ impl ApplicationHandler<Graphics> for App {
         _window_id: WindowId,
         event: WindowEvent,
     ) {
-        log::debug!("window_event: {:?} for {:?}", event, _window_id);
         match event {
             WindowEvent::Resized(size) => self.resized(size),
             WindowEvent::RedrawRequested => self.draw(),

@@ -1,8 +1,11 @@
+use std::borrow::Cow;
+
 use wgpu::{
-    Adapter, Color, CommandEncoderDescriptor, Device, DeviceDescriptor, Features, Instance, Limits,
-    LoadOp, MemoryHints, Operations, PowerPreference, Queue, RenderPassColorAttachment,
-    RenderPassDescriptor, RequestAdapterOptions, StoreOp, Surface, SurfaceConfiguration,
-    TextureViewDescriptor,
+    util::RenderEncoder, Adapter, Color, CommandEncoderDescriptor, Device, DeviceDescriptor,
+    Features, FragmentState, Instance, Limits, LoadOp, MemoryHints, Operations, PowerPreference,
+    Queue, RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline,
+    RenderPipelineDescriptor, RequestAdapterOptions, ShaderModuleDescriptor, ShaderSource, StoreOp,
+    Surface, SurfaceConfiguration, TextureFormat, TextureViewDescriptor, VertexState,
 };
 use winit::{dpi::PhysicalSize, event_loop::EventLoopProxy, window::Window};
 
@@ -24,8 +27,6 @@ pub async fn create_graphics(window: Rc<Window>, proxy: EventLoopProxy<Graphics>
         .await
         .expect("Could not get an adapter (GPU).");
 
-    log::info!("Got adapter: {:?}", adapter.get_info());
-
     let (device, queue) = adapter
         .request_device(
             &DeviceDescriptor {
@@ -46,7 +47,11 @@ pub async fn create_graphics(window: Rc<Window>, proxy: EventLoopProxy<Graphics>
     let width = size.width.max(1);
     let height = size.height.max(1);
     let surface_config = surface.get_default_config(&adapter, width, height).unwrap();
+
+    #[cfg(not(target_arch = "wasm32"))]
     surface.configure(&device, &surface_config);
+
+    let render_pipeline = create_pipeline(&device, surface_config.format);
 
     let gfx = Graphics {
         window: window.clone(),
@@ -56,9 +61,39 @@ pub async fn create_graphics(window: Rc<Window>, proxy: EventLoopProxy<Graphics>
         adapter,
         device,
         queue,
+        render_pipeline,
     };
 
     let _ = proxy.send_event(gfx);
+}
+
+fn create_pipeline(device: &Device, swap_chain_format: TextureFormat) -> RenderPipeline {
+    let shader = device.create_shader_module(ShaderModuleDescriptor {
+        label: None,
+        source: ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
+    });
+
+    device.create_render_pipeline(&RenderPipelineDescriptor {
+        label: None,
+        layout: None,
+        vertex: VertexState {
+            module: &shader,
+            entry_point: Some("vs_main"),
+            buffers: &[],
+            compilation_options: Default::default(),
+        },
+        fragment: Some(FragmentState {
+            module: &shader,
+            entry_point: Some("fs_main"),
+            targets: &[Some(swap_chain_format.into())],
+            compilation_options: Default::default(),
+        }),
+        primitive: Default::default(),
+        depth_stencil: None,
+        multisample: Default::default(),
+        multiview: None,
+        cache: None,
+    })
 }
 
 #[derive(Debug)]
@@ -70,6 +105,7 @@ pub struct Graphics {
     adapter: Adapter,
     device: Device,
     queue: Queue,
+    render_pipeline: RenderPipeline,
 }
 
 impl Graphics {
@@ -80,24 +116,22 @@ impl Graphics {
     }
 
     pub fn draw(&mut self) {
-        let surface_texture = self
+        let frame = self
             .surface
             .get_current_texture()
             .expect("Failed to aquire next swap chain texture.");
 
-        let texture_view = surface_texture
-            .texture
-            .create_view(&TextureViewDescriptor::default());
+        let view = frame.texture.create_view(&TextureViewDescriptor::default());
 
         let mut encoder = self
             .device
             .create_command_encoder(&CommandEncoderDescriptor { label: None });
 
         {
-            let _r_pass = encoder.begin_render_pass(&RenderPassDescriptor {
+            let mut r_pass = encoder.begin_render_pass(&RenderPassDescriptor {
                 label: None,
                 color_attachments: &[Some(RenderPassColorAttachment {
-                    view: &texture_view,
+                    view: &view,
                     resolve_target: None,
                     ops: Operations {
                         load: LoadOp::Clear(Color::GREEN),
@@ -108,9 +142,11 @@ impl Graphics {
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
-        } // This is important to drop the render pass
+            r_pass.set_pipeline(&self.render_pipeline);
+            r_pass.draw(0..3, 0..1);
+        } // `r_pass` dropped here
 
         self.queue.submit(Some(encoder.finish()));
-        surface_texture.present();
+        frame.present();
     }
 }
