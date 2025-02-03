@@ -7,7 +7,7 @@ use winit::{
     window::{Window, WindowId},
 };
 
-pub enum State {
+enum State {
     Ready(Graphics),
     Init(Option<EventLoopProxy<Graphics>>),
 }
