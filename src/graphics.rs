@@ -1,11 +1,11 @@
 use std::borrow::Cow;
 
 use wgpu::{
-    util::RenderEncoder, Adapter, Color, CommandEncoderDescriptor, Device, DeviceDescriptor,
-    Features, FragmentState, Instance, Limits, LoadOp, MemoryHints, Operations, PowerPreference,
-    Queue, RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline,
-    RenderPipelineDescriptor, RequestAdapterOptions, ShaderModuleDescriptor, ShaderSource, StoreOp,
-    Surface, SurfaceConfiguration, TextureFormat, TextureViewDescriptor, VertexState,
+    Adapter, Color, CommandEncoderDescriptor, Device, DeviceDescriptor, Features, FragmentState,
+    Instance, Limits, LoadOp, MemoryHints, Operations, PowerPreference, Queue,
+    RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline, RenderPipelineDescriptor,
+    RequestAdapterOptions, ShaderModuleDescriptor, ShaderSource, StoreOp, Surface,
+    SurfaceConfiguration, TextureFormat, TextureViewDescriptor, VertexState,
 };
 use winit::{dpi::PhysicalSize, event_loop::EventLoopProxy, window::Window};
 
