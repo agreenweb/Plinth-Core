@@ -31,7 +31,7 @@ pub async fn create_graphics(window: Rc<Window>, proxy: EventLoopProxy<Graphics>
         .request_device(
             &DeviceDescriptor {
                 label: None,
-                required_features: Features::empty(), // Specifies the required features by the device request. Fails if the adapt er can't provide them.
+                required_features: Features::empty(), // Specifies the required features by the device request. Fails if the adapter can't provide them.
                 required_limits: Limits::downlevel_webgl2_defaults()
                     .using_resolution(adapter.limits()),
                 memory_hints: MemoryHints::Performance,
