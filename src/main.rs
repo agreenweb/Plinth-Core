@@ -43,6 +43,5 @@ fn main() {
     //event_loop.set_control_flow(ControlFlow::Wait);
 
     let mut app = App::new(&event_loop);
-    app.set_title("Plinth Example");
     run_app(event_loop, app);
 }

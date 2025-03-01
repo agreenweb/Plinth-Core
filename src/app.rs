@@ -20,7 +20,7 @@ pub struct App {
 impl App {
     pub fn new(event_loop: &EventLoop<Graphics>) -> Self {
         Self {
-            title: "New App".to_string(),
+            title: "WebGPU Example".to_string(),
             state: State::Init(Some(event_loop.create_proxy())),
         }
     }
