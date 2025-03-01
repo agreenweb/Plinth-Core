@@ -13,12 +13,14 @@ enum State {
 }
 
 pub struct App {
+    title: String,
     state: State,
 }
 
 impl App {
     pub fn new(event_loop: &EventLoop<Graphics>) -> Self {
         Self {
+            title: "New App".to_string(),
             state: State::Init(Some(event_loop.create_proxy())),
         }
     }
@@ -33,6 +35,10 @@ impl App {
         if let State::Ready(gfx) = &mut self.state {
             gfx.resize(size);
         }
+    }
+
+    pub fn set_title(&mut self, title: &str) {
+        self.title = title.to_string();
     }
 }
 
@@ -58,7 +64,7 @@ impl ApplicationHandler<Graphics> for App {
 
                 #[cfg(not(target_arch = "wasm32"))]
                 {
-                    win_attr = win_attr.with_title("WebGPU example");
+                    win_attr = win_attr.with_title(self.title.as_str());
                 }
 
                 #[cfg(target_arch = "wasm32")]

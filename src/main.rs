@@ -42,6 +42,7 @@ fn main() {
     // input, and uses significantly less power/CPU time than ControlFlow::Poll.
     //event_loop.set_control_flow(ControlFlow::Wait);
 
-    let app = App::new(&event_loop);
+    let mut app = App::new(&event_loop);
+    app.set_title("Plinth Example");
     run_app(event_loop, app);
 }
