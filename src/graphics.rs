@@ -1,13 +1,12 @@
-use std::borrow::Cow;
+use std::cell::RefCell;
 
 use wgpu::{
-    Adapter, Color, CommandEncoderDescriptor, Device, DeviceDescriptor, Features, FragmentState,
-    Instance, Limits, LoadOp, MemoryHints, Operations, PowerPreference, Queue,
-    RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline, RenderPipelineDescriptor,
-    RequestAdapterOptions, ShaderModuleDescriptor, ShaderSource, StoreOp, Surface,
-    SurfaceConfiguration, TextureFormat, TextureViewDescriptor, VertexState,
+    Adapter, Device, DeviceDescriptor, Features, Instance, Limits, MemoryHints, PowerPreference,
+    Queue, RenderPipeline, RequestAdapterOptions, Surface, SurfaceConfiguration,
 };
 use winit::{dpi::PhysicalSize, event_loop::EventLoopProxy, window::Window};
+
+use crate::plinth_app::PlinthApp;
 
 #[cfg(target_arch = "wasm32")]
 pub type Rc<T> = std::rc::Rc<T>;
@@ -15,7 +14,11 @@ pub type Rc<T> = std::rc::Rc<T>;
 #[cfg(not(target_arch = "wasm32"))]
 pub type Rc<T> = std::sync::Arc<T>;
 
-pub async fn create_graphics(window: Rc<Window>, proxy: EventLoopProxy<Graphics>) {
+pub async fn create_graphics(
+    window: Rc<Window>,
+    proxy: EventLoopProxy<Graphics>,
+    user_app: Rc<RefCell<dyn PlinthApp>>,
+) {
     let instance = Instance::default();
     let surface = instance.create_surface(Rc::clone(&window)).unwrap();
     let adapter = instance
@@ -51,9 +54,9 @@ pub async fn create_graphics(window: Rc<Window>, proxy: EventLoopProxy<Graphics>
     #[cfg(not(target_arch = "wasm32"))]
     surface.configure(&device, &surface_config);
 
-    let render_pipeline = create_pipeline(&device, surface_config.format);
+    let render_pipelines = vec![];
 
-    let gfx = Graphics {
+    let mut gfx = Graphics {
         window: window.clone(),
         instance,
         surface,
@@ -61,51 +64,26 @@ pub async fn create_graphics(window: Rc<Window>, proxy: EventLoopProxy<Graphics>
         adapter,
         device,
         queue,
-        render_pipeline,
+        render_pipelines,
     };
+
+    let render_pipeline = user_app.borrow_mut().create_pipeline(&mut gfx);
+
+    gfx.render_pipelines.push(render_pipeline);
 
     let _ = proxy.send_event(gfx);
 }
 
-fn create_pipeline(device: &Device, swap_chain_format: TextureFormat) -> RenderPipeline {
-    let shader = device.create_shader_module(ShaderModuleDescriptor {
-        label: None,
-        source: ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
-    });
-
-    device.create_render_pipeline(&RenderPipelineDescriptor {
-        label: None,
-        layout: None,
-        vertex: VertexState {
-            module: &shader,
-            entry_point: Some("vs_main"),
-            buffers: &[],
-            compilation_options: Default::default(),
-        },
-        fragment: Some(FragmentState {
-            module: &shader,
-            entry_point: Some("fs_main"),
-            targets: &[Some(swap_chain_format.into())],
-            compilation_options: Default::default(),
-        }),
-        primitive: Default::default(),
-        depth_stencil: None,
-        multisample: Default::default(),
-        multiview: None,
-        cache: None,
-    })
-}
-
 #[derive(Debug)]
 pub struct Graphics {
-    window: Rc<Window>,
-    instance: Instance,
-    surface: Surface<'static>,
-    surface_config: SurfaceConfiguration,
-    adapter: Adapter,
-    device: Device,
-    queue: Queue,
-    render_pipeline: RenderPipeline,
+    pub window: Rc<Window>,
+    pub instance: Instance,
+    pub surface: Surface<'static>,
+    pub surface_config: SurfaceConfiguration,
+    pub adapter: Adapter,
+    pub device: Device,
+    pub queue: Queue,
+    pub render_pipelines: Vec<RenderPipeline>,
 }
 
 impl Graphics {
@@ -113,40 +91,5 @@ impl Graphics {
         self.surface_config.width = new_size.width.max(1);
         self.surface_config.height = new_size.height.max(1);
         self.surface.configure(&self.device, &self.surface_config);
-    }
-
-    pub fn draw(&mut self) {
-        let frame = self
-            .surface
-            .get_current_texture()
-            .expect("Failed to aquire next swap chain texture.");
-
-        let view = frame.texture.create_view(&TextureViewDescriptor::default());
-
-        let mut encoder = self
-            .device
-            .create_command_encoder(&CommandEncoderDescriptor { label: None });
-
-        {
-            let mut r_pass = encoder.begin_render_pass(&RenderPassDescriptor {
-                label: None,
-                color_attachments: &[Some(RenderPassColorAttachment {
-                    view: &view,
-                    resolve_target: None,
-                    ops: Operations {
-                        load: LoadOp::Clear(Color::BLACK),
-                        store: StoreOp::Store,
-                    },
-                })],
-                depth_stencil_attachment: None,
-                timestamp_writes: None,
-                occlusion_query_set: None,
-            });
-            r_pass.set_pipeline(&self.render_pipeline);
-            r_pass.draw(0..3, 0..1);
-        } // `r_pass` dropped here
-
-        self.queue.submit(Some(encoder.finish()));
-        frame.present();
     }
 }

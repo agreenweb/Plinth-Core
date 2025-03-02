@@ -1788,6 +1788,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "wasm-logger"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "074649a66bb306c8f2068c9016395fa65d8e08d2affcbf95acf3c24c3ab19718"
+dependencies = [
+ "log",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "wayland-backend"
 version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2022,7 +2033,9 @@ dependencies = [
  "env_logger",
  "log",
  "pollster",
+ "wasm-bindgen",
  "wasm-bindgen-futures",
+ "wasm-logger",
  "wgpu",
  "winit",
 ]

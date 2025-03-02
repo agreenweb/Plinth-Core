@@ -1,9 +1,12 @@
+use std::cell::RefCell;
+
 use crate::graphics::{create_graphics, Graphics, Rc};
+use crate::plinth_app::PlinthApp;
 use winit::{
     application::ApplicationHandler,
     dpi::PhysicalSize,
     event::WindowEvent,
-    event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy},
+    event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy},
     window::{Window, WindowId},
 };
 
@@ -15,19 +18,27 @@ enum State {
 pub struct App {
     title: String,
     state: State,
+    user_app: Rc<RefCell<dyn PlinthApp>>,
 }
 
 impl App {
-    pub fn new(event_loop: &EventLoop<Graphics>) -> Self {
-        Self {
+    pub fn new(event_loop: &EventLoop<Graphics>, user_app: Rc<RefCell<dyn PlinthApp>>) -> Self {
+        let mut app = App {
             title: "WebGPU Example".to_string(),
             state: State::Init(Some(event_loop.create_proxy())),
-        }
+            user_app,
+        };
+
+        app.user_app.borrow_mut().init();
+
+        return app;
     }
 
     fn draw(&mut self) {
         if let State::Ready(gfx) = &mut self.state {
-            gfx.draw();
+            self.user_app.borrow_mut().before_render();
+            self.user_app.borrow_mut().render(gfx);
+            self.user_app.borrow_mut().after_render();
         }
     }
 
@@ -52,9 +63,15 @@ impl ApplicationHandler<Graphics> for App {
         match event {
             WindowEvent::Resized(size) => self.resized(size),
             WindowEvent::RedrawRequested => self.draw(),
-            WindowEvent::CloseRequested => event_loop.exit(),
+            WindowEvent::CloseRequested => {
+                self.user_app.borrow_mut().on_close();
+                event_loop.exit()
+            }
             _ => {}
         }
+        self.user_app
+            .borrow_mut()
+            .event_handler(event_loop, _window_id, &event);
     }
 
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
@@ -79,11 +96,13 @@ impl ApplicationHandler<Graphics> for App {
                         .expect("create window err."),
                 );
 
+                let user_app = Rc::clone(&self.user_app);
+
                 #[cfg(target_arch = "wasm32")]
-                wasm_bindgen_futures::spawn_local(create_graphics(window, proxy));
+                wasm_bindgen_futures::spawn_local(create_graphics(window, proxy, user_app));
 
                 #[cfg(not(target_arch = "wasm32"))]
-                pollster::block_on(create_graphics(window, proxy));
+                pollster::block_on(create_graphics(window, proxy, user_app));
             }
         }
     }
@@ -91,4 +110,34 @@ impl ApplicationHandler<Graphics> for App {
     fn user_event(&mut self, _event_loop: &ActiveEventLoop, graphics: Graphics) {
         self.state = State::Ready(graphics);
     }
+}
+
+pub fn start_app(user_app: Rc<RefCell<dyn PlinthApp>>) {
+    let event_loop = EventLoop::<Graphics>::with_user_event().build().unwrap();
+    event_loop.set_control_flow(ControlFlow::Poll);
+    let app = App::new(&event_loop, user_app);
+    run_app(event_loop, app);
+}
+
+#[cfg(target_arch = "wasm32")]
+fn run_app(event_loop: EventLoop<Graphics>, app: App) {
+    // Sets up panics to go to the console.error in browser environments
+    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+    console_log::init_with_level(log::Level::Error).expect("Couldn't initialize logger");
+
+    // Runs the app async via the browsers event loop
+    use winit::platform::web::EventLoopExtWebSys;
+    wasm_bindgen_futures::spawn_local(async move {
+        event_loop.spawn_app(app);
+    });
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn run_app(event_loop: EventLoop<Graphics>, mut app: App) {
+    // Allows the setting of the log level through RUST_LOG env var.
+    // It also allows wgpu logs to be seen.
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("error")).init();
+
+    // Runs the app on the current thread.
+    let _ = event_loop.run_app(&mut app);
 }
