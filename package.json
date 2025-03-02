@@ -1,0 +1,26 @@
+{
+  "name": "plinth",
+  "version": "1.0.0",
+  "description": "This is a template repository to get started with **[WGPU](https://wgpu.rs/) (24.0.1)** + **[Winit](https://github.com/rust-windowing/winit) (0.30.8)**.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"tsc --watch\" \"trunk serve --open\"",
+    "build": "npx tsc && trunk serve --open "
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gusjengis/Plinth.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gusjengis/Plinth/issues"
+  },
+  "homepage": "https://github.com/gusjengis/Plinth#readme",
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  }
+}

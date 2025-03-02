@@ -60,7 +60,7 @@ pub trait PlinthApp {
         let swap_chain_format = gfx.surface_config.format;
         let shader = device.create_shader_module(ShaderModuleDescriptor {
             label: None,
-            source: ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
+            source: ShaderSource::Wgsl(Cow::Borrowed(include_str!("shaders/shader.wgsl"))),
         });
 
         device.create_render_pipeline(&RenderPipelineDescriptor {
