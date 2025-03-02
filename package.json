@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently \"tsc --watch\" \"trunk serve --open\"",
-    "build": "npx tsc && trunk serve --open "
+    "dev": "concurrently \"watchexec -w . --ignore target --ignore dist --ignore jsdist -- 'rimraf jsdist && npx tsc && trunk build && node generate-files.js'\" \"live-server dist\"",
+    "build": "npx tsc && trunk serve --open ",
+    "serve": "live-server dist --watch=dist"
   },
   "repository": {
     "type": "git",

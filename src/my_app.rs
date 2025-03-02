@@ -11,6 +11,6 @@ pub struct MyApp {}
 
 impl PlinthApp for MyApp {
     fn init(&mut self) {
-        log("Hello Console!");
+        log("Hello from Rust!");
     }
 }

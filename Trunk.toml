@@ -1,2 +1,7 @@
 [build]
 inject_scripts = true
+# target = "src/index.html"
+
+[watch]
+watch = ["./"]
+ignore = ["./dist", "./jsdist/"]

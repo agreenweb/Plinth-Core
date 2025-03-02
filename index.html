@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link data-trunk rel="rust" data-bin="wgpu-template" />
-    <link data-trunk rel="copy-file" href="jsdist/index.js" />
+    <link data-trunk rel="copy-dir" href="jsdist/js" />
     <!-- <link data-trunk rel="rust" data-target-name="wgpu-template" /> -->
     <title>WGPU-template</title>
     <style type="text/css">
@@ -27,7 +27,27 @@
 </head>
 
 <body>
-    <script src="/index.js"></script>
+
+    <script>
+        fetch("./files.json")  // ✅ Fetch the list of JS files
+            .then(response => response.json())
+            .then(data => {
+                if (!data.scripts || !Array.isArray(data.scripts)) {
+                    console.error("Invalid JSON format: Expected an array under `scripts` key.");
+                    return;
+                }
+
+                data.scripts.forEach(file => {
+                    if (file.endsWith(".js")) {  // ✅ Ensure it's a JS file
+                        const scriptTag = document.createElement("script");
+                        scriptTag.src = `./js/${file}`;
+                        document.body.appendChild(scriptTag);
+                    }
+                });
+            })
+            .catch(error => console.error("Error loading scripts:", error));
+    </script>
+
 </body>
 
 </html>
