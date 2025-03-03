@@ -21,13 +21,25 @@ cargo run
 # Add target wasm32-unknown-unknown for WASM builds
 rustup target add wasm32-unknown-unknown
 
-# Install trunk for WASM builds
-cargo install --locked trunk
+# Install Typescript
+npm install --global typescript
 
-# With WebGL (for browsers that don't support WebGPU)
-trunk serve --features webgl --open
-# With WebGPU
-trunk serve --open
+## Dev Build & Server Dependencies
+
+# Install trunk for WASM builds
+cargo install trunk
+
+# Install concurrently to run multiple commands simultaneously
+npm install --global concurrently
+
+# Install watchexec to execute commands when files update
+cargo install watchexec-cli
+
+# Install live server for hot-reloading dev server
+npm install --global live-server
+
+# Install rimraf for cross-platform folder clearing
+npm install --global rimraf
 ```
 
 For web builds, the app will be running on http://localhost:8080.
