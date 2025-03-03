@@ -2,7 +2,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const jsDir = path.join(__dirname, "dist/js");
+const jsDir = path.join(__dirname, "dist/assets");
 const outputFile = path.join(__dirname, "dist/files.json");
 
 // Get all `.js` files

@@ -18,7 +18,7 @@ try {
 	let content = fs.readFileSync(srcFile, "utf8");
 
 	if (mode === "vite") {
-		// Find all `.tsx` files in `tsxDir`
+		// Find all .tsx files in tsxDir
 		const tsxFiles = fs.readdirSync(tsxDir)
 			.filter(file => file.endsWith(".tsx"))
 			.map(file => `<script type="module" src="./src/web/ts/${file}"></script>`)
@@ -27,15 +27,21 @@ try {
 		// Replace the first line containing "VITE" with the generated script tags
 		content = content.replace(/^.*VITE.*$/m, tsxFiles);
 
+		// Remove everything between <!-- TRUNK_START --> and <!-- TRUNK_END -->
+		content = content.replace(/<!-- TRUNK_START -->[\s\S]*?<!-- TRUNK_END -->/g, "");
+
 		console.log("✅ Generated index.html for Vite.");
 	} else if (mode === "trunk") {
 		// Remove the line containing "VITE"
 		content = content.split("\n").filter(line => !line.includes("VITE")).join("\n");
 
+		// Remove the TRUNK_START and TRUNK_END comments but keep their content
+		content = content.replace(/<!-- TRUNK_START -->/g, "").replace(/<!-- TRUNK_END -->/g, "");
+
 		console.log("✅ Generated index.html for Trunk.");
 	}
 
-	// Write the modified content to `index.html`
+	// Write the modified content to index.html
 	fs.writeFileSync(outputFile, content, "utf8");
 } catch (error) {
 	console.error("❌ Error processing index.html:", error);

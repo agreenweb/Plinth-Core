@@ -45,8 +45,10 @@ impl App {
     }
 
     fn resized(&mut self, size: PhysicalSize<u32>) {
+        log("Resized");
         if let State::Ready(gfx) = &mut self.state {
             gfx.resize(size);
+            self.user_app.borrow_mut().render(gfx);
         }
     }
 
@@ -113,8 +115,16 @@ impl ApplicationHandler<Graphics> for App {
     fn user_event(&mut self, _event_loop: &ActiveEventLoop, graphics: Graphics) {
         self.state = State::Ready(graphics);
         if let State::Ready(gfx) = &mut self.state {
-            gfx.resize(gfx.window.inner_size());
-            self.draw();
+            let scale_factor = gfx.window.scale_factor();
+            let logical_size = gfx.window.inner_size();
+            let physical_size = winit::dpi::PhysicalSize::new(
+                (logical_size.width as f64 * scale_factor) as u32,
+                (logical_size.height as f64 * scale_factor) as u32,
+            );
+            log(format!("scale: {}", scale_factor).as_str());
+            log(format!("logical: {:?}", logical_size).as_str());
+            log(format!("physical: {:?}", physical_size).as_str());
+            self.resized(physical_size);
         }
         self.user_app.borrow_mut().init();
     }

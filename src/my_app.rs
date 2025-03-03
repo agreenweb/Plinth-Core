@@ -12,7 +12,7 @@ impl PlinthApp for MyApp {
     fn init(&mut self) {
         #[cfg(target_arch = "wasm32")]
         {
-            log("Hello from Rust!");
+            log("Hello from Rust?");
         }
     }
 }

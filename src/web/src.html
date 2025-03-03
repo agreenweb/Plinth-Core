@@ -5,8 +5,10 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- TRUNK_START -->
     <link data-trunk rel="rust" data-bin="wgpu-template" />
-    <link data-trunk rel="copy-dir" href="jsdist/js" />
+    <link data-trunk rel="copy-dir" href="jsdist/assets" />
+    <!-- TRUNK_END -->
     <title>WGPU-template</title>
 </head>
 
@@ -24,7 +26,7 @@
                 data.scripts.forEach(file => {
                     if (file.endsWith(".js")) {  // ✅ Ensure it's a JS file
                         const scriptTag = document.createElement("script");
-                        scriptTag.src = `./js/${file}`;
+                        scriptTag.src = `./assets/${file}`;
                         document.body.appendChild(scriptTag);
                     }
                 });
