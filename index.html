@@ -27,7 +27,7 @@
 </head>
 
 <body>
-
+        <div id="root"></div>
     <script>
         fetch("./files.json")  // ✅ Fetch the list of JS files
             .then(response => response.json())
@@ -47,7 +47,7 @@
             })
             .catch(error => console.error("Error loading scripts:", error));
     </script>
-
+<script type="module" src="./src/ts/index.tsx"></script>
 </body>
 
 </html>
