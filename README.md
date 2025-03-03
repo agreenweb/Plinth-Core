@@ -40,6 +40,9 @@ npm install --global live-server
 
 # Install rimraf for cross-platform folder clearing
 npm install --global rimraf
+
+# Install npm-run-all for execution independent of shell/OS
+npm install --global npm-run-all
 ```
 
 For web builds, the app will be running on http://localhost:8080.

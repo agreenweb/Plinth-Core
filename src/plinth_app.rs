@@ -49,9 +49,9 @@ pub trait PlinthApp {
     fn after_render(&mut self) {}
     fn event_handler(
         &mut self,
-        event_loop: &ActiveEventLoop,
+        _event_loop: &ActiveEventLoop,
         _window_id: WindowId,
-        event: &WindowEvent,
+        _event: &WindowEvent,
     ) {
     }
     fn on_close(&mut self) {}

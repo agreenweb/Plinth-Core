@@ -58,10 +58,10 @@ pub async fn create_graphics(
 
     let mut gfx = Graphics {
         window: window.clone(),
-        instance,
+        _instance: instance,
         surface,
         surface_config,
-        adapter,
+        _adapter: adapter,
         device,
         queue,
         render_pipelines,
@@ -77,10 +77,10 @@ pub async fn create_graphics(
 #[derive(Debug)]
 pub struct Graphics {
     pub window: Rc<Window>,
-    pub instance: Instance,
+    pub _instance: Instance,
     pub surface: Surface<'static>,
     pub surface_config: SurfaceConfiguration,
-    pub adapter: Adapter,
+    pub _adapter: Adapter,
     pub device: Device,
     pub queue: Queue,
     pub render_pipelines: Vec<RenderPipeline>,

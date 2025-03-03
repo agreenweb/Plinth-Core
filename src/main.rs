@@ -5,7 +5,6 @@ mod app;
 mod graphics;
 mod my_app;
 mod plinth_app;
-#[macro_use]
 mod util;
 
 fn main() {

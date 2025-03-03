@@ -1,7 +1,6 @@
-use std::cell::RefCell;
-
 use crate::graphics::{create_graphics, Graphics, Rc};
 use crate::plinth_app::PlinthApp;
+use std::cell::RefCell;
 use winit::{
     application::ApplicationHandler,
     dpi::PhysicalSize,
@@ -10,28 +9,31 @@ use winit::{
     window::{Window, WindowId},
 };
 
+use wasm_bindgen::prelude::*;
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
 enum State {
     Ready(Graphics),
     Init(Option<EventLoopProxy<Graphics>>),
 }
 
 pub struct App {
-    title: String,
+    _title: String,
     state: State,
     user_app: Rc<RefCell<dyn PlinthApp>>,
 }
 
 impl App {
     pub fn new(event_loop: &EventLoop<Graphics>, user_app: Rc<RefCell<dyn PlinthApp>>) -> Self {
-        let mut app = App {
-            title: "WebGPU Example".to_string(),
+        Self {
+            _title: "WebGPU Example".to_string(),
             state: State::Init(Some(event_loop.create_proxy())),
             user_app,
-        };
-
-        app.user_app.borrow_mut().init();
-
-        return app;
+        }
     }
 
     fn draw(&mut self) {
@@ -48,8 +50,8 @@ impl App {
         }
     }
 
-    pub fn set_title(&mut self, title: &str) {
-        self.title = title.to_string();
+    pub fn _set_title(&mut self, title: &str) {
+        self._title = title.to_string();
     }
 }
 
@@ -63,6 +65,7 @@ impl ApplicationHandler<Graphics> for App {
         match event {
             WindowEvent::Resized(size) => self.resized(size),
             WindowEvent::RedrawRequested => self.draw(),
+
             WindowEvent::CloseRequested => {
                 self.user_app.borrow_mut().on_close();
                 event_loop.exit()
@@ -81,7 +84,7 @@ impl ApplicationHandler<Graphics> for App {
 
                 #[cfg(not(target_arch = "wasm32"))]
                 {
-                    win_attr = win_attr.with_title(self.title.as_str());
+                    win_attr = win_attr.with_title(self._title.as_str());
                 }
 
                 #[cfg(target_arch = "wasm32")]
@@ -109,6 +112,11 @@ impl ApplicationHandler<Graphics> for App {
 
     fn user_event(&mut self, _event_loop: &ActiveEventLoop, graphics: Graphics) {
         self.state = State::Ready(graphics);
+        if let State::Ready(gfx) = &mut self.state {
+            gfx.resize(gfx.window.inner_size());
+            self.draw();
+        }
+        self.user_app.borrow_mut().init();
     }
 }
 
