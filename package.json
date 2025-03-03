@@ -4,12 +4,10 @@
   "description": "This is a template repository to get started with **[WGPU](https://wgpu.rs/) (24.0.1)** + **[Winit](https://github.com/rust-windowing/winit) (0.30.8)**.",
   "main": "index.js",
   "scripts": {
-    "clean": "rimraf jsdist dist",
-    "build:ts": "tsc",
     "build:trunk": "trunk build",
     "generate": "node generate-files.js",
     "build:vite": "vite build",
-    "build": "npm-run-all clean build:ts build:vite build:trunk generate",
+    "build": "npm-run-all build:vite build:trunk generate",
     "serve": "live-server dist",
     "dev": "concurrently \"watchexec -w . --ignore target --ignore dist --ignore jsdist -- npm run build\" \"npm run serve\""
   },
