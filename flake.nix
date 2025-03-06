@@ -15,6 +15,8 @@
         pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
             nodejs_23
+            rustup
+            cargo
             trunk
             watchexec
           ];
