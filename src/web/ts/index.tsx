@@ -1,6 +1,7 @@
 import { render } from "solid-js/web";
-
-console.log("Hello from TypeScript!")
+import "../css/canvas.css";
+// pinit.run();
+console.log("Heelo from TypeScript!")
 
 function App() {
 	return (
