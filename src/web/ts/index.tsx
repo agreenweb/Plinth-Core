@@ -1,7 +1,8 @@
 import { render } from "solid-js/web";
-import "../css/plinth.css";
-// pinit.run();
-console.log("Heelo from TypeScript!")
+import "../../plinth/plinth_web/plinth.tsx";
+import "../css/hello_world.css";
+
+console.log("Hello World!")
 
 function App() {
 	return (

@@ -9,19 +9,38 @@ if (!mode || (mode !== "vite" && mode !== "trunk")) {
 	process.exit(1);
 }
 
-const srcFile = "./src/web/src.html";
+const srcFile = "./src/plinth/plinth_web/src.html";
 const outputFile = "./index.html";
-const tsxDir = "./src/web/ts/";
+const srcDir = "./src";
+
+// Function to recursively find all .tsx files in a directory
+function findTsxFiles(dir, fileList = []) {
+	const files = fs.readdirSync(dir);
+	
+	files.forEach(file => {
+		const filePath = path.join(dir, file);
+		const stat = fs.statSync(filePath);
+		
+		if (stat.isDirectory()) {
+			findTsxFiles(filePath, fileList);
+		} else if (file.endsWith('.tsx')) {
+			// Convert absolute path to relative path from project root
+			const relativePath = `./${path.relative('.', filePath).replace(/\\/g, '/')}`;
+			fileList.push(relativePath);
+		}
+	});
+	
+	return fileList;
+}
 
 try {
 	// Read the source HTML file
 	let content = fs.readFileSync(srcFile, "utf8");
 
 	if (mode === "vite") {
-		// Find all .tsx files in tsxDir
-		const tsxFiles = fs.readdirSync(tsxDir)
-			.filter(file => file.endsWith(".tsx"))
-			.map(file => `<script type="module" src="./src/web/ts/${file}"></script>`)
+		// Find all .tsx files in the entire src directory
+		const tsxFiles = findTsxFiles(srcDir)
+			.map(filePath => `<script type="module" src="${filePath}"></script>`)
 			.join("\n");
 
 		// Replace the first line containing "VITE" with the generated script tags
@@ -30,7 +49,7 @@ try {
 		// Remove everything between <!-- TRUNK_START --> and <!-- TRUNK_END -->
 		content = content.replace(/<!-- TRUNK_START -->[\s\S]*?<!-- TRUNK_END -->/g, "");
 
-		console.log("✅ Generated index.html for Vite.");
+		console.log(`✅ Generated index.html for Vite with ${tsxFiles.split('\n').length} TSX files.`);
 	} else if (mode === "trunk") {
 		// Remove the line containing "VITE"
 		content = content.split("\n").filter(line => !line.includes("VITE")).join("\n");

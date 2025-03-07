@@ -7,11 +7,23 @@ use wgpu::{
 };
 use winit::{event::WindowEvent, event_loop::ActiveEventLoop, window::WindowId};
 
-use crate::graphics::Graphics;
+use crate::plinth::graphics::Graphics;
 
-pub trait PlinthApp {
+pub trait PlinthApp: PlinthRenderer {
     fn init(&mut self) {}
     fn before_render(&mut self) {}
+    fn after_render(&mut self) {}
+    fn event_handler(
+        &mut self,
+        _event_loop: &ActiveEventLoop,
+        _window_id: WindowId,
+        _event: &WindowEvent,
+    ) {
+    }
+    fn on_close(&mut self) {}
+}
+
+pub trait PlinthRenderer {
     fn render(&mut self, gfx: &mut Graphics) {
         let frame = gfx
             .surface
@@ -46,15 +58,6 @@ pub trait PlinthApp {
         gfx.queue.submit(Some(encoder.finish()));
         frame.present();
     }
-    fn after_render(&mut self) {}
-    fn event_handler(
-        &mut self,
-        _event_loop: &ActiveEventLoop,
-        _window_id: WindowId,
-        _event: &WindowEvent,
-    ) {
-    }
-    fn on_close(&mut self) {}
     fn create_pipeline(&mut self, gfx: &mut Graphics) -> RenderPipeline {
         let device = &gfx.device;
         let swap_chain_format = gfx.surface_config.format;

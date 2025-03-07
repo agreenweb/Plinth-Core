@@ -6,7 +6,7 @@ use wgpu::{
 };
 use winit::{dpi::PhysicalSize, event_loop::EventLoopProxy, window::Window};
 
-use crate::plinth_app::PlinthApp;
+use crate::plinth::plinth_app::PlinthApp;
 
 #[cfg(target_arch = "wasm32")]
 pub type Rc<T> = std::rc::Rc<T>;

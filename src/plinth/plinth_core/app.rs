@@ -1,5 +1,5 @@
-use crate::graphics::{create_graphics, Graphics, Rc};
-use crate::plinth_app::PlinthApp;
+use crate::plinth::graphics::{create_graphics, Graphics, Rc};
+use crate::plinth::plinth_app::PlinthApp;
 use std::cell::RefCell;
 use winit::{
     application::ApplicationHandler,
@@ -8,13 +8,6 @@ use winit::{
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy},
     window::{Window, WindowId},
 };
-
-use wasm_bindgen::prelude::*;
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
 
 enum State {
     Ready(Graphics),
@@ -45,7 +38,6 @@ impl App {
     }
 
     fn resized(&mut self, size: PhysicalSize<u32>) {
-        log("Resized");
         if let State::Ready(gfx) = &mut self.state {
             gfx.resize(size);
             self.user_app.borrow_mut().render(gfx);
@@ -121,9 +113,6 @@ impl ApplicationHandler<Graphics> for App {
                 (logical_size.width as f64 * scale_factor) as u32,
                 (logical_size.height as f64 * scale_factor) as u32,
             );
-            log(format!("scale: {}", scale_factor).as_str());
-            log(format!("logical: {:?}", logical_size).as_str());
-            log(format!("physical: {:?}", physical_size).as_str());
             self.resized(physical_size);
         }
         self.user_app.borrow_mut().init();

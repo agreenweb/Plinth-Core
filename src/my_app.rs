@@ -1,6 +1,5 @@
-use crate::plinth_app::PlinthApp;
+use crate::plinth::plinth_app::PlinthApp;
 use wasm_bindgen::prelude::*;
-pub struct MyApp {}
 
 #[wasm_bindgen]
 extern "C" {
@@ -8,11 +7,13 @@ extern "C" {
     fn log(s: &str);
 }
 
+pub struct MyApp {}
+
 impl PlinthApp for MyApp {
     fn init(&mut self) {
         #[cfg(target_arch = "wasm32")]
         {
-            log("Hello from Rust?");
+            log("Hello from Rust!");
         }
     }
 }
