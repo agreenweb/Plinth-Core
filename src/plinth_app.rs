@@ -7,7 +7,7 @@ use wgpu::{
 };
 use winit::{event::WindowEvent, event_loop::ActiveEventLoop, window::WindowId};
 
-use crate::plinth::graphics::Graphics;
+use crate::graphics::Graphics;
 
 pub trait PlinthApp: PlinthRenderer {
     fn init(&mut self) {}
