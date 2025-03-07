@@ -1,5 +1,5 @@
-use crate::plinth::graphics::{create_graphics, Graphics, Rc};
-use crate::plinth::plinth_app::PlinthApp;
+use crate::graphics::{create_graphics, Graphics, Rc};
+use crate::plinth_app::PlinthApp;
 use std::cell::RefCell;
 use winit::{
     application::ApplicationHandler,
