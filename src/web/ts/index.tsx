@@ -1,11 +1,11 @@
 import { render } from "solid-js/web";
-import "../css/canvas.css";
+import "../css/plinth.css";
 // pinit.run();
 console.log("Heelo from TypeScript!")
 
 function App() {
 	return (
-		<div>
+		<div class="HelloWorld">
 			<h1>Hello, World! </h1>
 		</div>
 	);
