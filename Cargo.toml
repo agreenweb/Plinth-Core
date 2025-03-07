@@ -1,12 +1,10 @@
 [package]
-name = "wgpu-template"
+name = "plinth-core"
 version = "0.1.0"
 edition = "2021"
 
 [features]
 default = []
-# turn on when compiling for browsers while waiting for webgpu
-# to get proper support
 webgl = ["wgpu/webgl"]
 
 [dependencies]
