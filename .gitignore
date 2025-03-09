@@ -4,3 +4,6 @@
 /node_modules
 /.helix
 index.html
+./.DS_Store
+./src/.DS_Store
+./Cargo.lock
