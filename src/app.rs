@@ -59,7 +59,6 @@ impl ApplicationHandler<Graphics> for App {
         match event {
             WindowEvent::Resized(size) => self.resized(size),
             WindowEvent::RedrawRequested => self.draw(),
-
             WindowEvent::CloseRequested => {
                 self.user_app.borrow_mut().on_close();
                 event_loop.exit()
