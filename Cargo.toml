@@ -1,6 +1,6 @@
 [package]
 name = "plinth-core"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 repository = "https://github.com/gusjengis/Plinth-Core"
 description = "The core library for Plinth. Handles the creation of a winit window with a wgpu rendering context. Defines an inteferface for external apps to execute their code during certain events (Resizing, User Input, Rendering, Initialization, etc.)."
