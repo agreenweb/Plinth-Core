@@ -31,16 +31,13 @@ pub async fn create_graphics(
         .expect("Could not get an adapter (GPU).");
 
     let (device, queue) = adapter
-        .request_device(
-            &DeviceDescriptor {
-                label: None,
-                required_features: Features::empty(), // Specifies the required features by the device request. Fails if the adapter can't provide them.
-                required_limits: Limits::downlevel_webgl2_defaults()
-                    .using_resolution(adapter.limits()),
-                memory_hints: MemoryHints::Performance,
-            },
-            None,
-        )
+        .request_device(&DeviceDescriptor {
+            label: None,
+            required_features: Features::empty(), // Specifies the required features by the device request. Fails if the adapter can't provide them.
+            required_limits: Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits()),
+            memory_hints: MemoryHints::Performance,
+            trace: wgpu::Trace::Off,
+        })
         .await
         .expect("Failed to get device");
 

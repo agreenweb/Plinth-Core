@@ -1,7 +1,7 @@
 [package]
 name = "plinth-core"
-version = "0.1.0"
-edition = "2021"
+version = "0.1.1"
+edition = "2024"
 repository = "https://github.com/gusjengis/Plinth-Core"
 description = "The core library for Plinth. Handles the creation of a winit window with a wgpu rendering context. Defines an inteferface for external apps to execute their code during certain events (Resizing, User Input, Rendering, Initialization, etc.)."
 license = "MIT OR Apache-2.0"
@@ -11,10 +11,10 @@ default = []
 webgl = ["wgpu/webgl"]
 
 [dependencies]
-winit = { version = "0.30.8" }
+winit = { version = "0.30.12" }
 env_logger = {version = "0.11.5"}
 log = { version = "0.4.22"}
-wgpu = { version = "24.0.1"}
+wgpu = { version = "26.0.1"}
 pollster = {version ="0.4.0"}
 wasm-logger = "0.2.0"
 wasm-bindgen = "0.2.100"
