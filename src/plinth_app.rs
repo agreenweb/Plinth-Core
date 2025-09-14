@@ -5,6 +5,7 @@ use wgpu::{
     RenderPassDescriptor, RenderPipeline, RenderPipelineDescriptor, ShaderModuleDescriptor,
     ShaderSource, StoreOp, TextureViewDescriptor, VertexState,
 };
+#[cfg(feature = "winit")]
 use winit::{event::WindowEvent, event_loop::ActiveEventLoop, window::WindowId};
 
 use crate::graphics::Graphics;
@@ -13,6 +14,7 @@ pub trait PlinthApp: PlinthRenderer {
     fn init(&mut self) {}
     fn before_render(&mut self) {}
     fn after_render(&mut self) {}
+    #[cfg(feature = "winit")]
     fn event_handler(
         &mut self,
         _event_loop: &ActiveEventLoop,

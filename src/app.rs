@@ -1,6 +1,11 @@
-use crate::graphics::{Graphics, Rc, create_graphics};
+use crate::graphics::{Graphics, Rc};
 use crate::plinth_app::PlinthApp;
 use std::cell::RefCell;
+
+// Winit imports (always available since it's the default)
+#[cfg(feature = "winit")]
+use crate::graphics::create_graphics;
+#[cfg(feature = "winit")]
 use winit::{
     application::ApplicationHandler,
     dpi::PhysicalSize,
@@ -9,17 +14,30 @@ use winit::{
     window::{Window, WindowId},
 };
 
+#[cfg(feature = "web-canvas")]
+use crate::web_canvas::{WebCanvas, WebRc};
+#[cfg(feature = "web-canvas")]
+use crate::graphics::create_graphics_web;
+#[cfg(feature = "web-canvas")]
+use wasm_bindgen::closure::Closure;
+#[cfg(feature = "web-canvas")]
+use wasm_bindgen::JsCast;
+
+// Winit-specific types (always available since it's the default)
+#[cfg(feature = "winit")]
 enum State {
     Ready(Graphics),
     Init(Option<EventLoopProxy<Graphics>>),
 }
 
+#[cfg(feature = "winit")]
 pub struct App {
     _title: String,
     state: State,
     user_app: Rc<RefCell<dyn PlinthApp>>,
 }
 
+#[cfg(feature = "winit")]
 impl App {
     pub fn new(event_loop: &EventLoop<Graphics>, user_app: Rc<RefCell<dyn PlinthApp>>) -> Self {
         Self {
@@ -49,6 +67,7 @@ impl App {
     }
 }
 
+#[cfg(feature = "winit")]
 impl ApplicationHandler<Graphics> for App {
     fn window_event(
         &mut self,
@@ -80,9 +99,9 @@ impl ApplicationHandler<Graphics> for App {
                     win_attr = win_attr.with_title(self._title.as_str());
                 }
 
-                #[cfg(target_arch = "wasm32")]
-                {
-                    use winit::platform::web::WindowAttributesExtWebSys;
+                       #[cfg(target_arch = "wasm32")]
+                       {
+                           use winit::platform::web::WindowAttributesExtWebSys;
                     win_attr = win_attr.with_append(true);
                 }
 
@@ -106,18 +125,22 @@ impl ApplicationHandler<Graphics> for App {
     fn user_event(&mut self, _event_loop: &ActiveEventLoop, graphics: Graphics) {
         self.state = State::Ready(graphics);
         if let State::Ready(gfx) = &mut self.state {
-            let scale_factor = gfx.window.scale_factor();
-            let logical_size = gfx.window.inner_size();
-            let physical_size = winit::dpi::PhysicalSize::new(
-                (logical_size.width as f64 * scale_factor) as u32,
-                (logical_size.height as f64 * scale_factor) as u32,
-            );
-            self.resized(physical_size);
+            if let Some(window) = &gfx.window {
+                let scale_factor = window.scale_factor();
+                let logical_size = window.inner_size();
+                       let physical_size = winit::dpi::PhysicalSize::new(
+                    (logical_size.width as f64 * scale_factor) as u32,
+                    (logical_size.height as f64 * scale_factor) as u32,
+                );
+                self.resized(physical_size);
+            }
         }
         self.user_app.borrow_mut().init();
     }
 }
 
+// Winit-based app functions (always available since it's the default)
+#[cfg(feature = "winit")]
 pub fn start_app(user_app: Rc<RefCell<dyn PlinthApp>>) {
     let event_loop = EventLoop::<Graphics>::with_user_event().build().unwrap();
     event_loop.set_control_flow(ControlFlow::Poll);
@@ -125,6 +148,7 @@ pub fn start_app(user_app: Rc<RefCell<dyn PlinthApp>>) {
     run_app(event_loop, app);
 }
 
+#[cfg(feature = "winit")]
 #[cfg(target_arch = "wasm32")]
 fn run_app(event_loop: EventLoop<Graphics>, app: App) {
     // Sets up panics to go to the console.error in browser environments
@@ -132,12 +156,13 @@ fn run_app(event_loop: EventLoop<Graphics>, app: App) {
     console_log::init_with_level(log::Level::Error).expect("Couldn't initialize logger");
 
     // Runs the app async via the browsers event loop
-    use winit::platform::web::EventLoopExtWebSys;
+           use winit::platform::web::EventLoopExtWebSys;
     wasm_bindgen_futures::spawn_local(async move {
         event_loop.spawn_app(app);
     });
 }
 
+#[cfg(feature = "winit")]
 #[cfg(not(target_arch = "wasm32"))]
 fn run_app(event_loop: EventLoop<Graphics>, mut app: App) {
     // Allows the setting of the log level through RUST_LOG env var.
@@ -146,4 +171,49 @@ fn run_app(event_loop: EventLoop<Graphics>, mut app: App) {
 
     // Runs the app on the current thread.
     let _ = event_loop.run_app(&mut app);
+}
+
+// Web canvas-based app functions
+#[cfg(feature = "web-canvas")]
+pub fn start_app_web(canvas_id: &str, user_app: WebRc<RefCell<dyn PlinthApp>>) -> Result<(), wasm_bindgen::JsValue> {
+    let canvas = WebCanvas::new(canvas_id)?;
+    let canvas_rc = WebRc::new(canvas);
+    
+    // Initialize web-specific app logic
+    wasm_bindgen_futures::spawn_local(async move {
+        let graphics = crate::graphics::create_graphics_web(canvas_rc.clone(), user_app.clone()).await;
+        let graphics_rc = WebRc::new(RefCell::new(graphics));
+        
+        // Create and start the event loop
+        let mut event_loop = crate::web_canvas::WebEventLoop::new(
+            canvas_rc, 
+            graphics_rc, 
+            user_app
+        );
+        
+        // Set up event listeners
+        setup_web_event_listeners(&event_loop);
+        
+        // Start the render loop
+        event_loop.start();
+    });
+    
+    Ok(())
+}
+
+#[cfg(feature = "web-canvas")]
+fn setup_web_event_listeners(_event_loop: &crate::web_canvas::WebEventLoop) {
+    // Set up resize listener
+    // Note: This is a simplified implementation for demonstration purposes
+    // In a real implementation, you would need to properly handle event listeners
+    // and manage the event loop lifecycle
+    
+    let window = web_sys::window().unwrap();
+    let closure = Closure::wrap(Box::new(move |_event: web_sys::Event| {
+        // Handle resize events
+        // Note: This would need proper implementation for event handling
+    }) as Box<dyn FnMut(web_sys::Event)>);
+    
+    window.add_event_listener_with_callback("resize", closure.as_ref().unchecked_ref()).unwrap();
+    closure.forget();
 }
