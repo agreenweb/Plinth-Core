@@ -3,14 +3,14 @@ name = "plinth-core"
 version = "0.1.2"
 edition = "2024"
 authors = ["gusjengis <gusjengis@example.com>"]
-repository = "https://github.com/gusjengis/Plinth-Core"
+rerepository = "https://github.com/gusjengis/Plinth-Core"
 description = "The core library for Plinth. Handles the creation of a winit window with a wgpu rendering context. Defines an inteferface for external apps to execute their code during certain events (Resizing, User Input, Rendering, Initialization, etc.)."
 license = "MIT OR Apache-2.0"
 
 [features]
 default = ["winit"]
 winit = ["dep:winit", "dep:env_logger", "dep:pollster"]
-web-canvas = ["dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures"]
+web-canvas = ["dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures", "dep:raw-window-handle", "wgpu/webgl"]
 webgl = ["wgpu/webgl"]
 
 [dependencies]
@@ -31,6 +31,7 @@ web-sys = { version = "0.3", features = [
     "HtmlCanvasElement", "Window", "Document", "Element", "Event", "EventTarget"
 ], optional = true }
 js-sys = { version = "0.3", optional = true }
+raw-window-handle = { version = "0.6", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"

@@ -1,0 +1,115 @@
+<html lang="en"><head>
+
+
+
+<script type="module">
+import init, * as bindings from '/plinth-hello-world-3b5b6ef2f846fb2f.js';
+const wasm = await init({ module_or_path: '/plinth-hello-world-3b5b6ef2f846fb2f_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+
+
+<link rel="modulepreload" href="/plinth-hello-world-3b5b6ef2f846fb2f.js" crossorigin="anonymous" integrity="sha384-Hw/DyJHFCNVs5ghOB52Q8ihsYgkBlAPMT/qPJ8/8HtxNoCqyT4A9rags/iTI0n8k"><link rel="preload" href="/plinth-hello-world-3b5b6ef2f846fb2f_bg.wasm" crossorigin="anonymous" integrity="sha384-qfO/r3Pz8xg65AQY9PH/EdmHfeYDVUAAxc/b2LUGzuE6VOgRkQlWUCuWhxg0joQ5" as="fetch" type="application/wasm"><link rel="stylesheet" href="./assets/index-DpVclFzN.css"><style type="text/css">canvas[alt="winit window"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* Places the canvas behind other elements */
+  display: block; /* Removes any default spacing */
+}
+</style></head>
+
+<body>
+    <div id="root"><div class="HelloWorld"><h1>Hello, World! </h1></div></div>
+
+
+<script>
+    fetch("./files.json")  // ✅ Fetch the list of JS and CSS files
+        .then(response => response.json())
+        .then(data => {
+            // Load JavaScript files
+            if (data.scripts && Array.isArray(data.scripts)) {
+                data.scripts.forEach(file => {
+                    if (file.endsWith(".js")) {  // ✅ Ensure it's a JS file
+                        const scriptTag = document.createElement("script");
+                        scriptTag.src = `./assets/${file}`;
+                        document.body.appendChild(scriptTag);
+                    }
+                });
+            } else {
+                console.error("Invalid JSON format: Expected an array under `scripts` key.");
+            }
+
+            // Load CSS files
+            if (data.styles && Array.isArray(data.styles)) {
+                data.styles.forEach(file => {
+                    if (file.endsWith(".css")) {  // ✅ Ensure it's a CSS file
+                        const linkTag = document.createElement("link");
+                        linkTag.rel = "stylesheet";
+                        linkTag.href = `./assets/${file}`;
+                        document.head.appendChild(linkTag);  // CSS goes in the head
+                    }
+                });
+            } else {
+                console.warn("No CSS files found in the JSON.");
+            }
+        })
+        .catch(error => console.error("Error loading assets:", error));
+</script>
+
+<!-- Code injected by live-server -->
+<script type="text/javascript">
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function() {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					head.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					head.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function(msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			console.log('Live reload enabled.');
+		})();
+	}
+	// ]]>
+</script>
+
+
+
+<canvas tabindex="0" alt="winit window" width="1728" height="2010"></canvas><script src="./assets/index-BezP380S.js"></script></body></html>
+[package]
+name = "wasm-test"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+plinth-core = { path = "..", features = ["web-canvas"] }
+wasm-bindgen = "0.2.100"
+wasm-bindgen-futures = "0.4.49"
+console_error_panic_hook = "0.1.7"
+console_log = "1.0"

@@ -1,10 +1,55 @@
-/target
-/dist
-/jsdist
-/node_modules
-/.helix
-index.html
+# Rust build artifacts
+/target/
+**/target/
+*.rlib
+*.d
+*.pdb
+
+# WASM build artifacts
+/pkg/
+*.wasm
+*.js
+*.d.ts
+*.wasm.d.ts
+*.wasm.js
+/dist/
+/jsdist/
+
+# Documentation build artifacts
+/doc/
+**/doc/
+
+# Node.js dependencies
+/node_modules/
+**/node_modules/
+
+# IDE and editor files
+/.helix/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
 .DS_Store
-./src/.DS_Store
-Cargo.lock
-flake.lock
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+index.html
+test.html
+
+# Lock files (uncomment if you want to ignore them)
+# Cargo.lock
+# flake.lock
+
+# Build scripts and test artifacts
+test_builds.sh
+TEST_README.md
+SETUP_SUMMARY.md
+CONDITIONAL_COMPILATION_REPORT.html

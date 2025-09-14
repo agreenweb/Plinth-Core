@@ -2,7 +2,7 @@ use std::cell::RefCell;
 
 use wgpu::{
     Adapter, Device, DeviceDescriptor, Features, Instance, Limits, MemoryHints, PowerPreference,
-    Queue, RenderPipeline, RequestAdapterOptions, Surface, SurfaceConfiguration,
+    Queue, RenderPipeline, RequestAdapterOptions, Surface, SurfaceConfiguration, SurfaceTargetUnsafe,
 };
 
 use crate::plinth_app::PlinthApp;
@@ -90,26 +90,56 @@ pub async fn create_graphics_web(
     canvas: WebRc<WebCanvas>,
     user_app: WebRc<RefCell<dyn PlinthApp>>,
 ) -> Graphics {
-    // This is a working WebGPU implementation that uses the proper WebGPU API
-    // through JavaScript interop, which is the correct approach for web-sys 0.3.78
-    
     let instance = Instance::default();
     
     // Get the canvas element
     let canvas_element = canvas.get_canvas();
     
-    // Step 1: Get WebGPU context from canvas
-    let context = canvas_element
-        .get_context("webgpu")
-        .expect("Failed to get WebGPU context")
-        .unwrap();
+    // Step 1: Create a wrapper that implements the required traits
+    struct CanvasWrapper<'a>(&'a web_sys::HtmlCanvasElement);
+    
+    // SAFETY: This is only used on WASM targets where there's only one thread
+    unsafe impl<'a> Send for CanvasWrapper<'a> {}
+    unsafe impl<'a> Sync for CanvasWrapper<'a> {}
+    
+    impl<'a> raw_window_handle::HasWindowHandle for CanvasWrapper<'a> {
+        fn window_handle(&self) -> Result<raw_window_handle::WindowHandle<'_>, raw_window_handle::HandleError> {
+            use raw_window_handle::WebCanvasWindowHandle;
+            use std::ptr::NonNull;
+            use std::ffi::c_void;
+            
+            // Get the canvas as a raw pointer
+            let canvas_ptr = self.0.as_ref() as *const web_sys::HtmlCanvasElement as *mut c_void;
+            let handle = WebCanvasWindowHandle::new(NonNull::new(canvas_ptr).unwrap());
+            Ok(unsafe { raw_window_handle::WindowHandle::borrow_raw(handle.into()) })
+        }
+    }
+    
+    impl<'a> raw_window_handle::HasDisplayHandle for CanvasWrapper<'a> {
+        fn display_handle(&self) -> Result<raw_window_handle::DisplayHandle<'_>, raw_window_handle::HandleError> {
+            use raw_window_handle::WebDisplayHandle;
+            let handle = WebDisplayHandle::new();
+            Ok(unsafe { raw_window_handle::DisplayHandle::borrow_raw(handle.into()) })
+        }
+    }
+    
+    let canvas_wrapper = CanvasWrapper(&canvas_element);
+    
+    // Step 2: Create SurfaceTargetUnsafe from the wrapper
+    let surface_target = unsafe { SurfaceTargetUnsafe::from_window(&canvas_wrapper) }
+        .expect("Failed to create SurfaceTargetUnsafe from canvas");
+    
+    // Step 3: Create surface using the unsafe method
+    let surface = unsafe {
+        instance.create_surface_unsafe(surface_target)
+    }.expect("Failed to create surface from canvas");
     
     // Step 2: Get the adapter and device
     let adapter = instance
         .request_adapter(&RequestAdapterOptions {
             power_preference: PowerPreference::default(),
             force_fallback_adapter: false,
-            compatible_surface: None, // Not needed for WebGPU context
+            compatible_surface: Some(&surface),
         })
         .await
         .expect("Could not get an adapter (GPU).");
@@ -125,36 +155,7 @@ pub async fn create_graphics_web(
         .await
         .expect("Failed to get device");
 
-    // Step 3: Configure WebGPU context using JavaScript interop
-    // Get the GPU object from the global scope
-    let window = web_sys::window().expect("No window");
-    let gpu = js_sys::Reflect::get(&window, &"gpu".into()).unwrap();
-    let gpu_func = gpu.dyn_into::<js_sys::Function>().unwrap();
-    let preferred_format = gpu_func.call0(&gpu).unwrap();
-    
-    // Create configuration object
-    let config = js_sys::Object::new();
-    // Note: We can't directly convert wgpu::Device to JsValue, so we'll use a different approach
-    // For now, we'll create a minimal configuration that works with the WebGPU context
-    js_sys::Reflect::set(&config, &"format".into(), &preferred_format).unwrap();
-    js_sys::Reflect::set(&config, &"alphaMode".into(), &"opaque".into()).unwrap();
-    
-    // Configure the context
-    let configure_method = js_sys::Reflect::get(&context, &"configure".into()).unwrap();
-    let configure_func = configure_method.dyn_into::<js_sys::Function>().unwrap();
-    configure_func.call1(&context, &config).unwrap();
-
-    // Step 4: Create surface from WebGPU context
-    // For WebGPU, we need to create a surface that works with the WebGPU context
-    // We'll use the unsafe surface creation which can work with WebGPU contexts
-    // Note: This is a simplified approach that works with the current web-sys version
-    // The HtmlCanvasElement doesn't implement the required traits for wgpu::create_surface
-    // so we need to use a different approach
-    let surface = instance
-        .create_surface_unsafe(wgpu::SurfaceTargetUnsafe::from_window(&canvas_element).expect("Failed to create surface target"))
-        .expect("Failed to create surface from WebGPU context");
-
-    // Step 5: Configure surface
+    // Step 3: Configure surface
     let width = canvas.get_width().max(1);
     let height = canvas.get_height().max(1);
     let surface_config = surface.get_default_config(&adapter, width, height).unwrap();
@@ -205,10 +206,10 @@ impl Graphics {
         self.surface.configure(&self.device, &self.surface_config);
     }
 
-    #[cfg(all(feature = "web-canvas", not(feature = "winit")))]
-    pub fn resize(&mut self, width: u32, height: u32) {
-        self.surface_config.width = width.max(1);
-        self.surface_config.height = height.max(1);
+    #[cfg(feature = "web-canvas")]
+    pub fn resize_web(&mut self, new_size: crate::web_canvas::WebSize) {
+        self.surface_config.width = new_size.width.max(1);
+        self.surface_config.height = new_size.height.max(1);
         self.surface.configure(&self.device, &self.surface_config);
     }
 }

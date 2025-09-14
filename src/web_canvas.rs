@@ -8,6 +8,20 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 #[cfg(feature = "web-canvas")]
+#[derive(Debug, Clone, Copy)]
+pub struct WebSize {
+    pub width: u32,
+    pub height: u32,
+}
+
+#[cfg(feature = "web-canvas")]
+impl WebSize {
+    pub fn new(width: u32, height: u32) -> Self {
+        Self { width, height }
+    }
+}
+
+#[cfg(feature = "web-canvas")]
 #[derive(Debug)]
 pub struct WebCanvas {
     pub canvas: HtmlCanvasElement,
@@ -127,7 +141,7 @@ impl WebEventLoop {
         
         if let Some(graphics) = &self.graphics {
             let mut gfx = graphics.borrow_mut();
-            gfx.resize(width, height);
+            gfx.resize_web(WebSize::new(width, height));
         }
     }
 
