@@ -1,0 +1,22 @@
+[package]
+name = "plinth-primitives"
+version = "0.1.0"
+edition = "2021"
+authors = ["gusjengis <gusjengis@example.com>"]
+description = "WebGPU primitives library for Plinth with CSS class support"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+wgpu = "26.0.1"
+bytemuck = { version = "1.14", features = ["derive"] }
+glam = "0.25"
+thiserror = "1.0"
+log = "0.4"
+
+[features]
+default = []
+web = ["web-sys", "wasm-bindgen"]
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys = { version = "0.3", features = ["Element", "HtmlElement"], optional = true }
+wasm-bindgen = { version = "0.2", optional = true }

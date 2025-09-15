@@ -1,9 +1,19 @@
+[workspace]
+members = [
+    ".",
+    "plinth-primitives",
+    "plinth-styles",
+    "winit",
+    "wasm"
+]
+resolver = "2"
+
 [package]
 name = "plinth-core"
 version = "0.1.2"
 edition = "2024"
 authors = ["gusjengis <gusjengis@example.com>"]
-rerepository = "https://github.com/gusjengis/Plinth-Core"
+repository = "https://github.com/gusjengis/Plinth-Core"
 description = "The core library for Plinth. Handles the creation of a winit window with a wgpu rendering context. Defines an inteferface for external apps to execute their code during certain events (Resizing, User Input, Rendering, Initialization, etc.)."
 license = "MIT OR Apache-2.0"
 

@@ -581,6 +581,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "glam"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "151665d9be52f9bb40fc7966565d39666f2d1e69233571b71b87791c7e0528b3"
+
+[[package]]
 name = "glow"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1315,6 +1321,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "plinth-primitives"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "glam",
+ "log",
+ "thiserror 1.0.69",
+ "wasm-bindgen",
+ "web-sys",
+ "wgpu",
+]
+
+[[package]]
+name = "plinth-styles"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "plinth-primitives",
+ "thiserror 1.0.69",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "polling"
 version = "3.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1914,6 +1944,18 @@ checksum = "074649a66bb306c8f2068c9016395fa65d8e08d2affcbf95acf3c24c3ab19718"
 dependencies = [
  "log",
  "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
+name = "wasm_test"
+version = "0.1.0"
+dependencies = [
+ "console_error_panic_hook",
+ "console_log",
+ "plinth-core",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
  "web-sys",
 ]
 
@@ -2571,6 +2613,14 @@ dependencies = [
  "x11-dl",
  "x11rb",
  "xkbcommon-dl",
+]
+
+[[package]]
+name = "winit-test"
+version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "plinth-core",
 ]
 
 [[package]]
