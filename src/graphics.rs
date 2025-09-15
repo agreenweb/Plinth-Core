@@ -2,7 +2,7 @@ use std::cell::RefCell;
 
 use wgpu::{
     Adapter, Device, DeviceDescriptor, Features, Instance, Limits, MemoryHints, PowerPreference,
-    Queue, RenderPipeline, RequestAdapterOptions, Surface, SurfaceConfiguration, SurfaceTargetUnsafe,
+    Queue, RenderPipeline, RequestAdapterOptions, Surface, SurfaceConfiguration,
 };
 
 use crate::plinth_app::PlinthApp;
@@ -14,7 +14,7 @@ use winit::{dpi::PhysicalSize, event_loop::EventLoopProxy, window::Window};
 #[cfg(feature = "web-canvas")]
 use crate::web_canvas::{WebCanvas, WebRc};
 #[cfg(feature = "web-canvas")]
-use wasm_bindgen::JsCast;
+use wgpu::SurfaceTargetUnsafe;
 
 #[cfg(target_arch = "wasm32")]
 pub type Rc<T> = std::rc::Rc<T>;

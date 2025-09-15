@@ -1,10 +1,10 @@
-use crate::graphics::{Graphics, Rc};
+// Rc is conditionally imported based on features
 use crate::plinth_app::PlinthApp;
 use std::cell::RefCell;
 
 // Winit imports (always available since it's the default)
 #[cfg(feature = "winit")]
-use crate::graphics::create_graphics;
+use crate::graphics::{create_graphics, Graphics, Rc};
 #[cfg(feature = "winit")]
 use winit::{
     application::ApplicationHandler,
@@ -16,8 +16,7 @@ use winit::{
 
 #[cfg(feature = "web-canvas")]
 use crate::web_canvas::{WebCanvas, WebRc};
-#[cfg(feature = "web-canvas")]
-use crate::graphics::create_graphics_web;
+// create_graphics_web is used in the start_app_web function
 #[cfg(feature = "web-canvas")]
 use wasm_bindgen::closure::Closure;
 #[cfg(feature = "web-canvas")]

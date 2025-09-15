@@ -1906,7 +1906,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "wasm-test"
+name = "wasm_test"
 version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
@@ -1914,6 +1914,7 @@ dependencies = [
  "plinth-core",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]

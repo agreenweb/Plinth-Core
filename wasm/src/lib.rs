@@ -61,11 +61,25 @@ impl WasmApp {
     pub fn new() -> WasmApp {
         // Set up panic hook for better error messages
         console_error_panic_hook::set_once();
-        console_log::init().expect("Failed to initialize console_log");
+        // Only initialize console_log once globally
+        let _ = console_log::init();
         
         WasmApp {
             event_loop: None,
         }
+    }
+
+    #[wasm_bindgen]
+    pub async fn new_with_canvas(canvas_id: &str) -> Result<WasmApp, JsValue> {
+        console_error_panic_hook::set_once();
+        let _ = console_log::init();
+        
+        let mut app = WasmApp {
+            event_loop: None,
+        };
+        
+        app.start(canvas_id).await?;
+        Ok(app)
     }
 
     #[wasm_bindgen]
@@ -100,5 +114,7 @@ impl WasmApp {
             event_loop.stop();
             console_log!("WASM app stopped");
         }
+        // Reset the event loop to None to allow restart
+        self.event_loop = None;
     }
 }
