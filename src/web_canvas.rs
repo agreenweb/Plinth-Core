@@ -111,10 +111,10 @@ impl WebEventLoop {
         }
     }
 
-    fn request_redraw(&mut self) {
+    pub fn request_redraw(&mut self) {
         let graphics = self.graphics.clone().unwrap();
         let user_app: Rc<RefCell<dyn crate::plinth_app::PlinthApp>> = Rc::clone(&self.user_app);
-        let _canvas = Rc::clone(&self.canvas);
+        let canvas = Rc::clone(&self.canvas);
         
         // Create closure for requestAnimationFrame
         let closure = Closure::wrap(Box::new(move || {
