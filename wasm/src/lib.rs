@@ -1,6 +1,6 @@
 use plinth_core::{plinth_app::PlinthApp, plinth_app::PlinthRenderer, web_canvas::{WebCanvas, WebEventLoop, WebRc}};
 use plinth_primitives::{Circle, Color, Transform, PrimitiveRenderer};
-use plinth_styles::{ClassMapper, CssClass, CssWatcher};
+use plinth_styles::{ClassMapper, CssWatcher};
 use plinth_styles::mapping::ColorProperty;
 
 use std::cell::RefCell;
@@ -59,24 +59,7 @@ impl PrimitivesTestApp {
     fn new() -> Self {
         let class_mapper = WebRc::new(RefCell::new(ClassMapper::new()));
         
-        // Add default CSS classes
-        {
-            let mut mapper = class_mapper.borrow_mut();
-            mapper.add_class(
-                CssClass::new("primary-button".to_string())
-                    .with_color(Color::from_hex(0xFF6B6B)) // Red
-            );
-            
-            mapper.add_class(
-                CssClass::new("secondary-button".to_string())
-                    .with_color(Color::from_hex(0x4ECDC4)) // Teal
-            );
-            
-            mapper.add_class(
-                CssClass::new("accent-button".to_string())
-                    .with_color(Color::from_hex(0x45B7D1)) // Blue
-            );
-        }
+        // Don't define CSS classes here - let the watcher discover them from HTML
 
         let circles = vec![
             Circle::new(Vec2::new(0.0, 0.0), 0.15)
@@ -110,9 +93,7 @@ impl PlinthApp for TestApp {
 
     fn before_render(&mut self) {
         self.frame_count += 1;
-        if self.frame_count % 60 == 0 {
-            console_log!("Frame: {}", self.frame_count);
-        }
+        // Frame counting - no logging needed
     }
 
     fn after_render(&mut self) {
@@ -127,9 +108,11 @@ impl PlinthApp for TestApp {
 impl PlinthApp for PrimitivesTestApp {
     fn init(&mut self) {
         console_log!("Primitives test app initialized!");
+        console_log!("About to create CSS watcher...");
         
         // Initialize CSS watcher
         let mut css_watcher = CssWatcher::new(WebRc::clone(&self.class_mapper));
+        console_log!("CSS watcher created, about to start...");
         css_watcher.watch_class("primary-button");
         css_watcher.watch_class("secondary-button");
         css_watcher.watch_class("accent-button");
@@ -137,6 +120,7 @@ impl PlinthApp for PrimitivesTestApp {
         // Set up callback to log when CSS changes
         css_watcher.set_callback(|| {
             console_log!("CSS custom properties changed, class mapper updated");
+            console_log!("CSS watcher callback triggered!");
         });
         
         if let Err(e) = css_watcher.start() {
@@ -155,10 +139,7 @@ impl PlinthApp for PrimitivesTestApp {
         for circle in &mut self.circles {
             if let Some(ref class_name) = circle.css_class {
                 if let Some(override_color) = self.class_mapper.borrow().get_color_for_class(class_name, ColorProperty::Color) {
-                    console_log!("Applying CSS override for {}: color={:?}", class_name, override_color);
                     circle.apply_css_override(override_color);
-                } else {
-                    console_log!("No CSS override found for class: {}", class_name);
                 }
             }
         }
@@ -173,14 +154,7 @@ impl PlinthApp for PrimitivesTestApp {
         // Update time for animation
         self.time += 0.016; // ~60 FPS
         
-        if self.frame_count % 60 == 0 {
-            console_log!("Primitives frame: {} - time: {:.2} - rendering {} circles", 
-                self.frame_count, self.time, self.circles.len());
-            for (i, circle) in self.circles.iter().enumerate() {
-                console_log!("Circle {}: pos=({:.2}, {:.2}) radius={:.2}", 
-                    i, circle.center.x, circle.center.y, circle.radius);
-            }
-        }
+        // Animation update - no logging needed
     }
 
     fn after_render(&mut self) {
@@ -188,7 +162,7 @@ impl PlinthApp for PrimitivesTestApp {
     }
 
     fn on_close(&mut self) {
-        console_log!("Primitives test app closing after {} frames", self.frame_count);
+        // App closing - no logging needed
     }
 }
 
@@ -203,39 +177,15 @@ impl PlinthRenderer for PrimitivesTestApp {
         // Initialize primitive renderer if not already done
         if self.primitive_renderer.is_none() {
             self.primitive_renderer = Some(PrimitiveRenderer::new(&graphics.device, graphics.surface_config.format));
-            console_log!("Primitive renderer initialized!");
-        }
-        
-        // Log primitives data
-        if self.frame_count % 60 == 0 {
-            console_log!("Rendering {} primitives with CSS styling", self.circles.len());
-            for (i, circle) in self.circles.iter().enumerate() {
-                console_log!("Circle {}: center=({:.1}, {:.1}), radius={:.1}, color=({:.1}, {:.1}, {:.1}, {:.1})", 
-                    i, circle.center.x, circle.center.y, circle.radius, 
-                    circle.color.r, circle.color.g, circle.color.b, circle.color.a);
-            }
         }
         
         // Add circles to the primitive renderer
         if let Some(ref mut primitive_renderer) = self.primitive_renderer {
             primitive_renderer.clear_circles();
-            
-            // Log the actual colors being sent to the renderer
-            for (i, circle) in self.circles.iter().enumerate() {
-                console_log!("Sending circle {} to renderer: color=({:.3}, {:.3}, {:.3}, {:.3})", 
-                    i, circle.color.r, circle.color.g, circle.color.b, circle.color.a);
-            }
-            
             primitive_renderer.add_circles(self.circles.clone());
-            
-            console_log!("About to render {} circles", self.circles.len());
             
             // Render the circles using the primitive renderer
             primitive_renderer.render(&graphics.device, &graphics.queue, &graphics.surface, &graphics.surface_config);
-            
-            console_log!("Circle rendering completed");
-        } else {
-            console_log!("Primitive renderer not initialized!");
         }
     }
 }
@@ -325,7 +275,8 @@ impl WasmApp {
         let canvas_rc: WebRc<WebCanvas> = WebRc::new(canvas);
         
         // Create the primitives test app
-        let primitives_app = PrimitivesTestApp::new();
+        let mut primitives_app = PrimitivesTestApp::new();
+        primitives_app.init(); // Manually call init to set up CSS watcher
         let primitives_app_rc: WebRc<RefCell<PrimitivesTestApp>> = WebRc::new(RefCell::new(primitives_app));
         let app_rc: WebRc<RefCell<dyn PlinthApp>> = WebRc::clone(&primitives_app_rc) as WebRc<RefCell<dyn PlinthApp>>;
         
@@ -363,48 +314,5 @@ impl WasmApp {
         }
     }
     
-    #[wasm_bindgen]
-    pub fn update_css_colors(&mut self, primary_color: &str, secondary_color: &str, accent_color: &str) {
-        // This method will be called from JavaScript when colors change
-        console_log!("Updating CSS colors: primary={}, secondary={}, accent={}", 
-            primary_color, secondary_color, accent_color);
-        
-        if let Some(ref primitives_app) = self.primitives_app {
-            let mut app = primitives_app.borrow_mut();
-            
-            // Parse hex colors and update the class mapper
-            if let Ok(primary) = parse_hex_color(primary_color) {
-                console_log!("Parsed primary color: {:?}", primary);
-                app.class_mapper.borrow_mut().add_class(
-                    CssClass::new("primary-button".to_string())
-                        .with_color(primary)
-                );
-            } else {
-                console_log!("Failed to parse primary color: {}", primary_color);
-            }
-            
-            if let Ok(secondary) = parse_hex_color(secondary_color) {
-                console_log!("Parsed secondary color: {:?}", secondary);
-                app.class_mapper.borrow_mut().add_class(
-                    CssClass::new("secondary-button".to_string())
-                        .with_color(secondary)
-                );
-            } else {
-                console_log!("Failed to parse secondary color: {}", secondary_color);
-            }
-            
-            if let Ok(accent) = parse_hex_color(accent_color) {
-                console_log!("Parsed accent color: {:?}", accent);
-                app.class_mapper.borrow_mut().add_class(
-                    CssClass::new("accent-button".to_string())
-                        .with_color(accent)
-                );
-            } else {
-                console_log!("Failed to parse accent color: {}", accent_color);
-            }
-        } else {
-            console_log!("No primitives app found!");
-        }
-    }
 }
 
