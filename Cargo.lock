@@ -1337,6 +1337,8 @@ dependencies = [
 name = "plinth-styles"
 version = "0.1.0"
 dependencies = [
+ "console_log",
+ "js-sys",
  "log",
  "plinth-primitives",
  "thiserror 1.0.69",

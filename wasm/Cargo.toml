@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 [dependencies]
 plinth-core = { path = "..", features = ["web-canvas"] }
 plinth-primitives = { path = "../plinth-primitives" }
-plinth-styles = { path = "../plinth-styles" }
+plinth-styles = { path = "../plinth-styles", features = ["web"] }
 wasm-bindgen = "0.2.100"
 wasm-bindgen-futures = "0.4.49"
 console_error_panic_hook = "0.1.7"

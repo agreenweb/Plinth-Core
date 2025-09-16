@@ -1,6 +1,6 @@
 use plinth_core::{plinth_app::PlinthApp, plinth_app::PlinthRenderer, web_canvas::{WebCanvas, WebEventLoop, WebRc}};
 use plinth_primitives::{Circle, Color, Transform, PrimitiveRenderer};
-use plinth_styles::{ClassMapper, CssClass};
+use plinth_styles::{ClassMapper, CssClass, CssWatcher};
 use plinth_styles::mapping::ColorProperty;
 
 use std::cell::RefCell;
@@ -49,30 +49,34 @@ impl TestApp {
 struct PrimitivesTestApp {
     frame_count: u32,
     circles: Vec<Circle>,
-    class_mapper: ClassMapper,
+    class_mapper: WebRc<RefCell<ClassMapper>>,
     time: f32,
     primitive_renderer: Option<PrimitiveRenderer>,
+    css_watcher: Option<CssWatcher>,
 }
 
 impl PrimitivesTestApp {
     fn new() -> Self {
-        let mut class_mapper = ClassMapper::new();
+        let class_mapper = WebRc::new(RefCell::new(ClassMapper::new()));
         
-        // Add CSS classes
-        class_mapper.add_class(
-            CssClass::new("primary-button".to_string())
-                .with_color(Color::from_hex(0xFF6B6B)) // Red
-        );
-        
-        class_mapper.add_class(
-            CssClass::new("secondary-button".to_string())
-                .with_color(Color::from_hex(0x4ECDC4)) // Teal
-        );
-        
-        class_mapper.add_class(
-            CssClass::new("accent-button".to_string())
-                .with_color(Color::from_hex(0x45B7D1)) // Blue
-        );
+        // Add default CSS classes
+        {
+            let mut mapper = class_mapper.borrow_mut();
+            mapper.add_class(
+                CssClass::new("primary-button".to_string())
+                    .with_color(Color::from_hex(0xFF6B6B)) // Red
+            );
+            
+            mapper.add_class(
+                CssClass::new("secondary-button".to_string())
+                    .with_color(Color::from_hex(0x4ECDC4)) // Teal
+            );
+            
+            mapper.add_class(
+                CssClass::new("accent-button".to_string())
+                    .with_color(Color::from_hex(0x45B7D1)) // Blue
+            );
+        }
 
         let circles = vec![
             Circle::new(Vec2::new(0.0, 0.0), 0.15)
@@ -93,6 +97,7 @@ impl PrimitivesTestApp {
             class_mapper,
             time: 0.0,
             primitive_renderer: None,
+            css_watcher: None,
         }
     }
 }
@@ -122,7 +127,25 @@ impl PlinthApp for TestApp {
 impl PlinthApp for PrimitivesTestApp {
     fn init(&mut self) {
         console_log!("Primitives test app initialized!");
-        // Note: PrimitiveRenderer will be initialized in the render method when we have access to the graphics context
+        
+        // Initialize CSS watcher
+        let mut css_watcher = CssWatcher::new(WebRc::clone(&self.class_mapper));
+        css_watcher.watch_class("primary-button");
+        css_watcher.watch_class("secondary-button");
+        css_watcher.watch_class("accent-button");
+        
+        // Set up callback to log when CSS changes
+        css_watcher.set_callback(|| {
+            console_log!("CSS custom properties changed, class mapper updated");
+        });
+        
+        if let Err(e) = css_watcher.start() {
+            console_log!("Failed to start CSS watcher: {:?}", e);
+        } else {
+            console_log!("CSS watcher started successfully");
+        }
+        
+        self.css_watcher = Some(css_watcher);
     }
 
     fn before_render(&mut self) {
@@ -131,7 +154,7 @@ impl PlinthApp for PrimitivesTestApp {
         // Apply CSS class overrides
         for circle in &mut self.circles {
             if let Some(ref class_name) = circle.css_class {
-                if let Some(override_color) = self.class_mapper.get_color_for_class(class_name, ColorProperty::Color) {
+                if let Some(override_color) = self.class_mapper.borrow().get_color_for_class(class_name, ColorProperty::Color) {
                     console_log!("Applying CSS override for {}: color={:?}", class_name, override_color);
                     circle.apply_css_override(override_color);
                 } else {
@@ -343,7 +366,6 @@ impl WasmApp {
     #[wasm_bindgen]
     pub fn update_css_colors(&mut self, primary_color: &str, secondary_color: &str, accent_color: &str) {
         // This method will be called from JavaScript when colors change
-        // We'll update the class mapper with new colors
         console_log!("Updating CSS colors: primary={}, secondary={}, accent={}", 
             primary_color, secondary_color, accent_color);
         
@@ -353,7 +375,7 @@ impl WasmApp {
             // Parse hex colors and update the class mapper
             if let Ok(primary) = parse_hex_color(primary_color) {
                 console_log!("Parsed primary color: {:?}", primary);
-                app.class_mapper.add_class(
+                app.class_mapper.borrow_mut().add_class(
                     CssClass::new("primary-button".to_string())
                         .with_color(primary)
                 );
@@ -363,7 +385,7 @@ impl WasmApp {
             
             if let Ok(secondary) = parse_hex_color(secondary_color) {
                 console_log!("Parsed secondary color: {:?}", secondary);
-                app.class_mapper.add_class(
+                app.class_mapper.borrow_mut().add_class(
                     CssClass::new("secondary-button".to_string())
                         .with_color(secondary)
                 );
@@ -373,7 +395,7 @@ impl WasmApp {
             
             if let Ok(accent) = parse_hex_color(accent_color) {
                 console_log!("Parsed accent color: {:?}", accent);
-                app.class_mapper.add_class(
+                app.class_mapper.borrow_mut().add_class(
                     CssClass::new("accent-button".to_string())
                         .with_color(accent)
                 );

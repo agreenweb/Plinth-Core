@@ -5,7 +5,7 @@ use plinth_primitives::Color;
 use crate::types::CssClass;
 
 #[cfg(feature = "web")]
-use web_sys::{window, document, Element, CssStyleDeclaration};
+use web_sys::{window, Document};
 
 pub struct CssParser;
 
@@ -26,7 +26,7 @@ impl CssParser {
     #[cfg(feature = "web")]
     pub fn extract_classes_from_dom() -> Result<Vec<CssClass>, CssParseError> {
         let window = window().ok_or(CssParseError::DomAccessFailed)?;
-        let document = window.document().ok_or(CssParseError::DomAccessFailed)?;
+        let _document = window.document().ok_or(CssParseError::DomAccessFailed)?;
         
         // This is a simplified implementation
         // In a real implementation, you'd parse all stylesheets and extract class definitions
